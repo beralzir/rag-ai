@@ -100,3 +100,17 @@ verbatim: false
 contains_personal_data: false
 ---
 ```
+
+## Export OKF (camada de intercâmbio)
+
+O **OKF (Open Knowledge Format)** é um formato de intercâmbio (diretório de `.md` com frontmatter YAML) para distribuir conhecimento entre ferramentas e organizações. Aqui ele é **camada de saída**, nunca o formato interno da base: a governança tag-first (gate, quarentena, licença por unidade) mora na base, não no bundle exportado.
+
+Compatibilidade, para quando um export existir:
+
+- **Um chunk tag-first NÃO é um Concept OKF automaticamente.** O único campo obrigatório do OKF é `type` (string livre), que o núcleo tag-first não tem; o export precisa **injetar `type`** (derivável de `primary_category` + `data_kind`). Sem `type`, o bundle não é conforme.
+- **`chunk_id` mapeia para o Concept ID** do OKF (o caminho do arquivo sem `.md`); o resto do frontmatter 2.0 viaja como chaves extras, que o OKF tolera.
+- **Headings do OKF (`# Schema`, `# Citations`) são permitidos no corpo** do chunk sem virarem obrigatórios; não conflitam com o corte por seção.
+- **A auditabilidade ativa não viaja.** O enforcement (gate falha-fechada, hooks, `permissions.deny`) vive no harness local, não no bundle; o que viaja é verificabilidade **passiva**: `content_hash` deixa o receptor detectar adulteração, e o git carrega histórico e atribuição. O export deve declarar isso, senão o receptor superestima a garantia.
+- **Cuidado com `index.md`:** o índice-mestre da base (com marcadores de máquina) não é a listagem-por-diretório que o OKF reserva; reconciliar os dois é trabalho do export, não é só "reservar o nome".
+
+Construir o export é degrau de escala (ver `audit_eval.md`), só sob gatilho medido de distribuição externa; fora do fluxo diário.

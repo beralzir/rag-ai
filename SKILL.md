@@ -56,7 +56,7 @@ Corte por tags no frontmatter monta o subconjunto → expanda a busca livre em P
 
 ## Fora de escopo
 
-Notas pessoais; bases sem dono claro; construir dashboards/apps (a base os serve; handoff `arquiteto-fullstack`); implementar embeddings/vector store (documente o gatilho e pare); parecer jurídico.
+Notas pessoais; bases sem dono claro; construir dashboards/apps (a base os serve; handoff `arquiteto-fullstack`); implementar embeddings/vector store (documente o gatilho e pare); export OKF / intercâmbio entre sistemas (degrau de escala sob gatilho de distribuição; ver `references/audit_eval.md` e `references/frontmatter_schema.md`); parecer jurídico.
 
 ## Qualidade e manutenção
 

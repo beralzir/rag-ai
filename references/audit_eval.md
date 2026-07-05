@@ -45,6 +45,7 @@ Rodada de avaliação (você como juiz, honesto):
 | Quarentena de extração/gráficos acumulando | 3 · re-OCR e extração de gráficos via serviço |
 | Recall caindo em consultas por conceito que aliases não resolvem | 4 · busca híbrida (embeddings contextualizados + BM25 + reranker) |
 | Virou produto multiusuário com equipe dev | 5 · framework de orquestração (decisão da equipe) |
+| Necessidade medida de distribuir/publicar a base entre orgs ou ferramentas | export · Knowledge Bundle OKF, camada de intercâmbio (constrói-se então `scripts/export_okf.py`; compatibilidade na seção "Export OKF" de `frontmatter_schema.md`). Eixo de interop, ortogonal aos degraus 1-5 |
 
 Regra: sobe-se UM degrau por vez, preservando as 14 invariantes. Sem gatilho medido, não se sobe.
 
