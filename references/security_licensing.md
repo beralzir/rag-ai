@@ -39,4 +39,6 @@ Calibração honesta: as proteções do Claude Code (sandbox, deny, classificado
 
 **Exigem parecer profissional (pare e diga):** usar a base em entregáveis para clientes externos sem checar a licença da fonte; treinar/afinar modelos com o conteúdo; ingerir material obtido sem licença própria; reproduzir séries/gráficos inteiros; microdados com dados pessoais.
 
+**Export para OKF (fluxo F) é distribuição.** O bundle não pode virar "substituto da assinatura" para quem não é licenciado (teste dos três passos acima): unidades `permitted_use: internal_only` ficam **fora** por default (`--allow-internal` é explícito e vai para o `log.md`); os campos de licença viajam como chaves extras e continuam obrigando quem redistribui; o `index.md` do bundle marca `contains_licensed_units` e o aviso de governança repete que o enforcement não viaja. Fonte com `consent_required` sem `consent_ref` nem chega a exportar (o gate de origem bloqueia antes).
+
 **Campos por chunk** (schema, seção licença): `licensor`, `permitted_use`, `access_basis`, `verbatim`+`verbatim_len`+`attribution`, `tdm_ai_clause`, `contains_personal_data`, `review_date`. O gate valida presença; o log do lote registra consentimentos.

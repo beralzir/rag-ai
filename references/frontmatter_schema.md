@@ -1,6 +1,6 @@
 # Schema de frontmatter 2.0 (metade narrativa)
 
-Todo chunk é um `.md` em `corpus/<categoria>/` com frontmatter YAML delimitado por `---`. O `validate_base.py` valida contra este schema usando `_meta/base_config.yaml` e `_meta/taxonomy.yaml`. Formato YAML restrito: `chave: valor`, listas inline `[a, b]`, um nível de aninhamento em `tags:`; âncoras e blocos multiline (`|`, `>`) são proibidos; strings com `:` no valor vão entre aspas.
+Todo chunk é um `.md` em `corpus/<categoria>/` com frontmatter YAML delimitado por `---`. O `validate_base.py` valida contra este schema usando `_meta/base_config.yaml` e `_meta/taxonomy.yaml`. Formato YAML restrito: `chave: valor`, listas inline `[a, b]`, um nível de aninhamento em `tags:`; âncoras e blocos multiline (`|`, `>`) são proibidos; strings com `:` no valor vão entre aspas. `#` só é comentário no início da linha ou precedido de espaço (`abc#def` é valor literal). As extensões do parser para bundles OKF (mapa inline, escalar em bloco) **não** valem para chunks tag-first.
 
 **Como o `content_hash` é calculado** (para escrever certo de primeira): sha256 do corpo com whitespace colapsado (`\s+` → espaço único) e strip nas pontas, truncado nos 8 primeiros hex. É o mesmo cálculo de `ragai_lib.content_hash`; na dúvida, gere via script em vez de calcular de cabeça.
 
@@ -18,6 +18,14 @@ Todo chunk é um `.md` em `corpus/<categoria>/` com frontmatter YAML delimitado 
 | `date_ingested` | YYYY-MM-DD | data do lote |
 | `content_hash` | 8 hex | sha256 do corpo normalizado, truncado em 8 (o validador recalcula e compara) |
 | `tags` | mapa eixo→lista | todo eixo do config presente; todo valor é termo ATIVO da taxonomia (deprecado = erro, com ponteiro para o sucessor) |
+
+### Opcionais alinhados ao OKF v0.2
+
+| Campo | Formato | Uso |
+|---|---|---|
+| `type` | string curta (`chunk`, `chunk-modelado`, `framework`…) | só se quiser fixar o `type` do concept no export para OKF; ausente, o export deriva de `primary_category` + `data_kind` (`references/okf_mapping_profile.md`) |
+
+**Não adicione** ao chunk tag-first os campos `status` do OKF (`draft|stable|deprecated`: colide com o `status` deste schema), `stale_after` (duplica `valid_until`) nem `sources` (lista de objetos; fora do subconjunto YAML do chunk). Tudo isso é derivado no export. Um mantenedor futuro que "corrigir" isso quebra o gate e o perfil de mapeamento.
 
 ### Contexto (obrigatório na ingestão via skill)
 
@@ -101,16 +109,14 @@ contains_personal_data: false
 ---
 ```
 
-## Export OKF (camada de intercâmbio)
+## OKF v0.2: relação com este schema
 
-O **OKF (Open Knowledge Format)** é um formato de intercâmbio (diretório de `.md` com frontmatter YAML) para distribuir conhecimento entre ferramentas e organizações. Aqui ele é **camada de saída**, nunca o formato interno da base: a governança tag-first (gate, quarentena, licença por unidade) mora na base, não no bundle exportado.
+O **OKF (Open Knowledge Format, Google Cloud, v0.2)** é o segundo formato desta skill: bundle nativo (fluxos A/B/D/E em `format: okf`) e camada de export de bases tag-first (fluxo F). Estrutura, campos e convenções em `references/okf_bundle.md`; de-para campo a campo em `references/okf_mapping_profile.md`; quando escolher cada um em `references/triagem_forma.md`.
 
-Compatibilidade, para quando um export existir:
+O que este schema precisa saber:
 
-- **Um chunk tag-first NÃO é um Concept OKF automaticamente.** O único campo obrigatório do OKF é `type` (string livre), que o núcleo tag-first não tem; o export precisa **injetar `type`** (derivável de `primary_category` + `data_kind`). Sem `type`, o bundle não é conforme.
-- **`chunk_id` mapeia para o Concept ID** do OKF (o caminho do arquivo sem `.md`); o resto do frontmatter 2.0 viaja como chaves extras, que o OKF tolera.
-- **Headings do OKF (`# Schema`, `# Citations`) são permitidos no corpo** do chunk sem virarem obrigatórios; não conflitam com o corte por seção.
-- **A auditabilidade ativa não viaja.** O enforcement (gate falha-fechada, hooks, `permissions.deny`) vive no harness local, não no bundle; o que viaja é verificabilidade **passiva**: `content_hash` deixa o receptor detectar adulteração, e o git carrega histórico e atribuição. O export deve declarar isso, senão o receptor superestima a garantia.
-- **Cuidado com `index.md`:** o índice-mestre da base (com marcadores de máquina) não é a listagem-por-diretório que o OKF reserva; reconciliar os dois é trabalho do export, não é só "reservar o nome".
-
-Construir o export é degrau de escala (ver `audit_eval.md`), só sob gatilho medido de distribuição externa; fora do fluxo diário.
+- **Um chunk tag-first NÃO é um concept OKF automaticamente.** O único campo obrigatório do OKF é `type`, que o núcleo tag-first não tem; o export injeta (ou usa o `type` opcional acima).
+- **`chunk_id` vira Concept ID** (`<primary_category>/<chunk_id>`); o resto do frontmatter 2.0 viaja como chaves extras, que o OKF tolera. `status` e `tags` são traduzidos e preservados em `ragai_status`/`ragai_tags`.
+- **O corpo viaja byte-idêntico**: `content_hash` continua conferindo no bundle; o export adiciona `content_sha256`.
+- **A auditabilidade ativa não viaja.** Gate, hooks e `permissions.deny` vivem no harness local; o bundle carrega verificabilidade passiva (hash, proveniência, git) e um aviso obrigatório dizendo isso.
+- **`index.md`:** o índice-mestre desta base (marcadores `rag-ai:status`) nunca vai para o bundle; o bundle tem listagem por diretório (`rag-ai:listing`), e o validador OKF acusa vazamento.

@@ -66,6 +66,8 @@ Nunca renomeie in-place e nunca delete. Crie o termo novo, marque o antigo como 
 
 - Busca por conceito: comece pelo `id` da tag (grep no frontmatter), depois expanda corpo com `label_pt` + `label_en` + `aliases` nos DOIS idiomas.
 - Registro de miss: quando uma busca legítima não encontra nada, anote em `_meta/search_misses.md` (data, consulta, o que esperava). É insumo do golden set e gatilho de aliases novos.
+- `scripts/query_lexical.py --base . --term <id>` faz a expansão (id + labels + aliases) e imprime o comando `rg` exato, que é a query registrada (`references/consulta_lexical.md`).
+- **Em modo OKF**: a taxonomia é opcional e mora em `.ragai/taxonomy.yaml` (mesmo template); as `tags` do concept são lista plana `eixo:termo`; sem taxonomia, expanda a partir das `tags` listadas nos `index.md`.
 
 ## Como adicionar uma categoria (pasta física)
 

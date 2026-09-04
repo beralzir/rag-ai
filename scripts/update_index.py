@@ -3,7 +3,8 @@
 
 Conta chunks e fontes por categoria (corpus/), quarentena e linhas das
 tabelas canônicas; grava `_meta/ingestion_report.json` e reescreve o bloco
-gerenciado de `index.md` (entre os marcadores rag-ai:status).
+gerenciado de `index.md` (entre os marcadores rag-ai:status). Em base
+`format: okf` delega a okf_lib.update_bundle_indexes (listagem por diretório).
 
 Uso:
   python3 update_index.py --base <path> [--check]
@@ -21,7 +22,7 @@ from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from ragai_lib import YamlError, split_frontmatter  # noqa: E402
+from ragai_lib import YamlError, load_base, split_frontmatter  # noqa: E402
 
 BEGIN = "<!-- rag-ai:status:begin -->"
 END = "<!-- rag-ai:status:end -->"
@@ -90,6 +91,16 @@ def main():
     ap.add_argument("--check", action="store_true", help="só verifica defasagem (exit 1 se defasado)")
     args = ap.parse_args()
     base = Path(args.base).expanduser().resolve()
+    try:
+        fmt = load_base(base)["format"]
+    except FileNotFoundError:
+        fmt = "tagfirst"  # bases antigas sem config continuam funcionando
+    except YamlError as e:
+        print(f"[FATAL] base_config.yaml ilegível: {e}")
+        sys.exit(2)
+    if fmt == "okf":
+        from okf_lib import update_bundle_indexes  # import tardio: bases tag-first não carregam okf_lib
+        sys.exit(update_bundle_indexes(base, check=args.check))
     index_path = base / "index.md"
     if not index_path.exists():
         print(f"[FATAL] index.md não encontrado em {base}")

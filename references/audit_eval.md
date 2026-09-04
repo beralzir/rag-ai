@@ -5,9 +5,15 @@
 ## 1. Integridade (mecânica)
 
 ```bash
+# base tag-first
 python3 scripts/validate_base.py --base <base> --strict     # corpus + taxonomia (+ --tabular p/ CSVs)
 python3 scripts/update_index.py --base <base> --check       # contagens do index batem com o filesystem?
+# bundle OKF (format: okf)
+python3 scripts/validate_okf.py --bundle <bundle> --strict --profile ragai   # conformance §11 + perfil ragai
+python3 scripts/update_index.py --base <bundle> --check                       # listagens por diretório em dia?
 ```
+
+O formato está em `base_config.yaml` (`_meta/` ou `.ragai/`); `validate_base.py` recusa bundle OKF e aponta o gate certo.
 
 ## 2. Saúde e cobertura (varreduras)
 
@@ -18,6 +24,8 @@ python3 scripts/update_index.py --base <base> --check       # contagens do index
 - **Drift de scripts**: `created_by` em `base_config.yaml` vs versão atual da skill; se a skill evoluiu, comparar `scripts/` da base com os da skill e propor atualização via PR.
 - **Quarentenas**: itens acumulando em `corpus/_quarentena/`, `tabular/_quarentena/` e fila de reingestão → é o gatilho do degrau 3 (extração assistida por serviço).
 - **Misses**: `_meta/search_misses.md` com padrões repetidos → aliases novos ou candidato a termo.
+- **Bundle OKF (nativo)**: concepts `stable` com `stale_after` vencido; concepts sem `sources`; `verified` mais antigo que a última edição (o tier caiu sem ninguém notar); `log.md` sem `authorized_by` em entrada de ingestão.
+- **Export OKF existente**: `ragai.origin_commit` no `index.md` do bundle vs `git rev-parse HEAD` da base (snapshot defasado = médio); `validate_okf.py --strict --profile ragai` no bundle (hash divergente = **crítico**: adulteração). Ver `references/okf_mapping_profile.md`, seção Verificação.
 
 ## 3. Golden set (qualidade de recuperação)
 
@@ -40,14 +48,18 @@ Rodada de avaliação (você como juiz, honesto):
 
 | Sinal medido | Degrau a considerar |
 |---|---|
-| Perguntas de síntese global falhando no golden set | 1 · catálogos e sumários por lote |
+| Perguntas de síntese global falhando **e** corpus sob o gate de tokens (`corpus_tokens.py`) | 0 · **leitura integral** (`references/leitura_integral.md`), antes de qualquer artefato derivado |
+| Número/citação não localizável por tags | 0 · **consulta lexical registrada** (`references/consulta_lexical.md`), antes do degrau 2 |
+| Perguntas de síntese global falhando **e** corpus acima do gate | 1 · catálogos e sumários por lote |
 | Grep exigindo muitas iterações / latência incômoda | 2 · índice lexical local (FTS5, com folding de acentos) |
 | Quarentena de extração/gráficos acumulando | 3 · re-OCR e extração de gráficos via serviço |
 | Recall caindo em consultas por conceito que aliases não resolvem | 4 · busca híbrida (embeddings contextualizados + BM25 + reranker) |
 | Virou produto multiusuário com equipe dev | 5 · framework de orquestração (decisão da equipe) |
-| Necessidade medida de distribuir/publicar a base entre orgs ou ferramentas | export · Knowledge Bundle OKF, camada de intercâmbio (constrói-se então `scripts/export_okf.py`; compatibilidade na seção "Export OKF" de `frontmatter_schema.md`). Eixo de interop, ortogonal aos degraus 1-5 |
+| Necessidade medida de distribuir/publicar a base entre orgs ou ferramentas | export · **fluxo F** (`scripts/export_okf.py`, construído): Knowledge Bundle OKF v0.2 como camada de intercâmbio; a governança fica na origem. Eixo de interop, ortogonal aos degraus 1-5 |
 
 Regra: sobe-se UM degrau por vez, preservando as 14 invariantes. Sem gatilho medido, não se sobe.
+
+**Futuro documentado (não construído):** camada compilada tipo LLM-wiki (páginas de tema/entidade derivadas e versionadas, `log.md` de operações, lint de contradições, footnotes que só resolvem para unidade bruta). Gatilho: leitura integral **estoura o gate** e o golden set **continua** falhando em síntese global. Antes disso, é custo sem retorno e cria risco de auto-citação. GraphRAG/LightRAG/HippoRAG e embeddings permanecem no degrau 4.
 
 ## 5. Relatório de auditoria (formato)
 

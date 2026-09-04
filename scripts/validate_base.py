@@ -434,6 +434,10 @@ def main():
     except (FileNotFoundError, YamlError) as e:
         print(f"[FATAL] não foi possível carregar a base: {e}")
         sys.exit(2)
+    if base_data["format"] != "tagfirst":
+        print(f"[FATAL] base em formato '{base_data['format']}': este gate é tag-first. "
+              f"Use: python3 scripts/validate_okf.py --bundle {base} --profile ragai --strict")
+        sys.exit(2)
 
     rep = Report()
     counts = validate_corpus(base_data, rep, Path(args.file) if args.file else None)
